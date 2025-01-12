@@ -1,11 +1,11 @@
 import createDebug from 'debug';
-import {EventEmitter} from 'eventemitter3';
+import { EventEmitter } from 'eventemitter3';
 // Import under alias so DOM's WebSocket type can be used
 import WebSocketIpml from 'isomorphic-ws';
-import type {Except, Merge, SetOptional} from 'type-fest';
+import type { Except, Merge, SetOptional } from 'type-fest';
 
-import {WebSocketOpCode} from './types.js';
-import type {OutgoingMessageTypes, OutgoingMessage, OBSEventTypes, IncomingMessage, IncomingMessageTypes, OBSRequestTypes, OBSResponseTypes, RequestMessage, RequestBatchExecutionType, RequestBatchRequest, RequestBatchMessage, ResponseMessage, ResponseBatchMessage, RequestBatchOptions} from './types.js';
+import { WebSocketOpCode } from './types.js';
+import type { OutgoingMessageTypes, OutgoingMessage, OBSEventTypes, IncomingMessage, IncomingMessageTypes, OBSRequestTypes, OBSResponseTypes, RequestMessage, RequestBatchExecutionType, RequestBatchRequest, RequestBatchMessage, ResponseMessage, ResponseBatchMessage, RequestBatchOptions } from './types.js';
 import authenticationHashing from './utils/authenticationHashing.js';
 
 const debug = createDebug('obs-websocket-js');
@@ -32,8 +32,8 @@ type MapValueToArgsArray<T extends Record<string, unknown>> = {
 
 type IdentificationInput = SetOptional<Except<OutgoingMessageTypes[WebSocketOpCode.Identify], 'authentication'>, 'rpcVersion'>;
 type HelloIdentifiedMerged = Merge<
-Exclude<IncomingMessageTypes[WebSocketOpCode.Hello], 'authenticate'>,
-IncomingMessageTypes[WebSocketOpCode.Identified]
+	Exclude<IncomingMessageTypes[WebSocketOpCode.Hello], 'authenticate'>,
+	IncomingMessageTypes[WebSocketOpCode.Identified]
 >;
 
 export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<EventTypes>> {
@@ -136,7 +136,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 			requestType,
 			requestData,
 		} as RequestMessage<Type>);
-		const {requestStatus, responseData} = await responsePromise;
+		const { requestStatus, responseData } = await responsePromise;
 
 		if (!requestStatus.result) {
 			throw new OBSWebSocketError(requestStatus.code, requestStatus.comment);
@@ -163,7 +163,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 			...options,
 		});
 
-		const {results} = await responsePromise;
+		const { results } = await responsePromise;
 		return results;
 	}
 
@@ -206,13 +206,14 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 		await connectionOpenedPromise;
 		const protocol = this.socket?.protocol;
 		// Browsers don't autoclose on missing/wrong protocol
-		if (!protocol) {
-			throw new OBSWebSocketError(-1, 'Server sent no subprotocol');
-		}
-
-		if (protocol !== this.protocol) {
-			throw new OBSWebSocketError(-1, 'Server sent an invalid subprotocol');
-		}
+		// Remove protocol check for bun
+		// if (!protocol) {
+		// 	throw new OBSWebSocketError(-1, 'Server sent no subprotocol');
+		// }
+		//
+		// if (protocol !== this.protocol) {
+		// 	throw new OBSWebSocketError(-1, 'Server sent an invalid subprotocol');
+		// }
 
 		return helloPromise;
 	}
@@ -315,7 +316,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 */
 	protected async onMessage(e: MessageEvent<string | Blob | ArrayBuffer>) {
 		try {
-			const {op, d} = await this.decodeMessage(e.data);
+			const { op, d } = await this.decodeMessage(e.data);
 			debug('socket.message: %d %j', op, d);
 
 			if (op === undefined || d === undefined) {
@@ -324,7 +325,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 
 			switch (op) {
 				case WebSocketOpCode.Event: {
-					const {eventType, eventData} = d;
+					const { eventType, eventData } = d;
 					// @ts-expect-error Typescript just doesn't understand it
 					this.emit(eventType, eventData);
 					return;
@@ -332,7 +333,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 
 				case WebSocketOpCode.RequestResponse:
 				case WebSocketOpCode.RequestBatchResponse: {
-					const {requestId} = d;
+					const { requestId } = d;
 					this.internalListeners.emit(`res:${requestId}`, d);
 					return;
 				}
@@ -392,5 +393,5 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 // https://github.com/developit/microbundle/issues/531#issuecomment-575473024
 // Not using ESM export due to it also being detected and breaking rollup based bundlers (vite)
 if (typeof exports !== 'undefined') {
-	Object.defineProperty(exports, '__esModule', {value: true});
+	Object.defineProperty(exports, '__esModule', { value: true });
 }
