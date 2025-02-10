@@ -4,20 +4,20 @@ Simple example to show connecting and making a scene switcher.
 
 ```sh
 npm init
-npm install obs-websocket-js --save
+npm install obs-websocket-bun --save
 ```
 
 or...
 
 ```sh
 bower init
-bower install obs-websocket-js
+bower install obs-websocket-bun
 ```
 
 Then include `obs-websocket.js` in your HTML file.
 
 ```html
-<script type="text/javascript" src="node_modules/obs-websocket-js/dist/obs-websocket.js"></script>
+<script type="text/javascript" src="node_modules/obs-websocket-bun/dist/obs-websocket.js"></script>
 ```
 
 and start using it.

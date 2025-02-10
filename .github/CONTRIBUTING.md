@@ -2,16 +2,16 @@
 
 ## Issues/Feedback/Requests
 
-- Create a new issue [here](https://github.com/obs-websocket-community-projects/obs-websocket-js/issues/new), please be as descriptive as possible.
+- Create a new issue [here](https://github.com/ibanks42/obs-websocket-bun/issues/new), please be as descriptive as possible.
 
 ## Building the Project Locally
 
 - Install [node.js v20 or greater](http://nodejs.org)
 - Clone/Fork the repo
 - Install dependencies with `npm install`
-- Generate the browser distributable Javascript file with `npm run build`  
+- Generate the browser distributable Javascript file with `npm run build`
   - Or `npm run watch` to automatically build when files are modified.
-- This project makes use of eslint, run `npm run lint` for linting and `npm run test` for basic unit testing. 
+- This project makes use of eslint, run `npm run lint` for linting and `npm run test` for basic unit testing.
 
 ## Building Typings Locally
 
@@ -21,4 +21,4 @@
 ## Contributing Guidelines
 
 - Please use descriptive commit messages.
-- When submitting a Pull Request, reference related [Issues](https://github.com/obs-websocket-community-projects/obs-websocket-js/issues) if any exist.
+- When submitting a Pull Request, reference related [Issues](https://github.com/ibanks42/obs-websocket-bun/issues) if any exist.

@@ -1,7 +1,7 @@
-# obs-websocket-js
+# obs-websocket-bun
 
 <p align="center"><i>
-obs-websocket-js allows Javascript-based connections to the Open Broadcaster Software plugin <a href="https://github.com/obsproject/obs-websocket">obs-websocket</a>.
+obs-websocket-bun allows Javascript-based connections to the Open Broadcaster Software plugin <a href="https://github.com/obsproject/obs-websocket">obs-websocket</a>.
 </i>
   <br>
   Created by <a href="https://github.com/haganbmj">Brendan Hagan</a>
@@ -10,21 +10,21 @@ obs-websocket-js allows Javascript-based connections to the Open Broadcaster Sof
 </p>
 
 <p align="center">
-  <a href="https://github.com/obs-websocket-community-projects/obs-websocket-js/actions"><img src="https://img.shields.io/github/checks-status/obs-websocket-community-projects/obs-websocket-js/master"></a>
-  <a href="https://www.npmjs.com/package/obs-websocket-js"><img src="https://img.shields.io/npm/v/obs-websocket-js.svg?style=flat"></a>
-  <a href="https://www.npmjs.com/package/obs-websocket-js"><img src="https://img.shields.io/npm/dt/obs-websocket-js.svg"></a>
-  <img src="https://img.shields.io/npm/l/obs-websocket-js.svg">
+  <a href="https://github.com/ibanks42/obs-websocket-bun/actions"><img src="https://img.shields.io/github/checks-status/ibanks42/obs-websocket-bun/master"></a>
+  <a href="https://www.npmjs.com/package/obs-websocket-bun"><img src="https://img.shields.io/npm/v/obs-websocket-bun.svg?style=flat"></a>
+  <a href="https://www.npmjs.com/package/obs-websocket-bun"><img src="https://img.shields.io/npm/dt/obs-websocket-bun.svg"></a>
+  <img src="https://img.shields.io/npm/l/obs-websocket-bun.svg">
 </p>
 
 <p align="center"><b>
-  <a href="https://github.com/obs-websocket-community-projects/obs-websocket-js/releases">Download</a> |
-  <a href="https://github.com/obs-websocket-community-projects/obs-websocket-js/tree/master/samples">Samples</a> |
-  <a href="https://github.com/obs-websocket-community-projects/obs-websocket-js/releases">Changelog</a>
+  <a href="https://github.com/ibanks42/obs-websocket-bun/releases">Download</a> |
+  <a href="https://github.com/ibanks42/obs-websocket-bun/tree/master/samples">Samples</a> |
+  <a href="https://github.com/ibanks42/obs-websocket-bun/releases">Changelog</a>
 </b></p>
 
-# Version Warning!
+# Version Warning
 
-> You are currently reading the documentation for v5. [For v4 documentation look here](https://github.com/obs-websocket-community-projects/obs-websocket-js/tree/v4)
+> You are currently reading the documentation for v5. [For v4 documentation look here](https://github.com/ibanks42/obs-websocket-bun/tree/v4)
 
 ---
 
@@ -32,11 +32,11 @@ obs-websocket-js allows Javascript-based connections to the Open Broadcaster Sof
 
 ### Via package manager
 
-Using a package manager like npm / yarn is the recommended installation method when you're planning to use obs-websocket-js in node.js, building a web app that you'll bundle with webpack or rollup, or for using type definitions.
+Using a package manager like npm / yarn is the recommended installation method when you're planning to use obs-websocket-bun in node.js, building a web app that you'll bundle with webpack or rollup, or for using type definitions.
 
 ```sh
-npm install obs-websocket-js
-yarn add obs-websocket-js
+npm install obs-websocket-bun
+yarn add obs-websocket-bun
 ```
 
 ### Standalone file / CDN build
@@ -44,8 +44,8 @@ yarn add obs-websocket-js
 Standalone js file is available from jsdeliver & unpkg CDN's:
 
 ```
-https://cdn.jsdelivr.net/npm/obs-websocket-js
-https://unpkg.com/obs-websocket-js
+https://cdn.jsdelivr.net/npm/obs-websocket-bun
+https://unpkg.com/obs-websocket-bun
 ```
 
 ## Usage
@@ -68,7 +68,7 @@ In addition each version has both modern and legacy builds. Modern bundlers will
 `OBSWebSocket` is available as a named export in ES Modules:
 
 ```ts
-import { OBSWebSocket } from 'obs-websocket-js';
+import { OBSWebSocket } from 'obs-websocket-bun';
 
 const obs = new OBSWebSocket();
 ```
@@ -76,8 +76,8 @@ const obs = new OBSWebSocket();
 When using commonjs `require()` it is available under the `OBSWebSocket` object key:
 
 ```ts
-const { OBSWebSocket } = require('obs-websocket-js');
-const OBSWebSocket = require('obs-websocket-js').OBSWebSocket;
+const { OBSWebSocket } = require('obs-websocket-bun');
+const OBSWebSocket = require('obs-websocket-bun').OBSWebSocket;
 
 const obs = new OBSWebSocket();
 ```
@@ -99,7 +99,7 @@ Parameter | Description
 Returns promise that resolves to data from [Hello](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#hello-opcode-0) and [Identified](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#identified-opcode-2) messages or rejects with connection error (either matching obs-websocket [WebSocketCloseCode](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#websocketclosecode) or with code -1 when non-compatible server is detected).
 
 ```ts
-import OBSWebSocket, {EventSubscription} from 'obs-websocket-js';
+import OBSWebSocket, {EventSubscription} from 'obs-websocket-bun';
 const obs = new OBSWebSocket();
 
 // connect to obs-websocket running on localhost with same port
@@ -235,7 +235,7 @@ const results = await obs.callBatch([
 ])
 ```
 
-Currently, obs-websocket-js is not able to infer the types of ResponseData to any specific request's response. To use the data safely, cast it to the appropriate type for the request that was sent.
+Currently, obs-websocket-bun is not able to infer the types of ResponseData to any specific request's response. To use the data safely, cast it to the appropriate type for the request that was sent.
 
 ```ts
 (results[0].responseData as OBSResponseTypes['GetVersion']).obsVersion //=> 28.0.0
@@ -258,7 +258,6 @@ Parameter | Description
 `event`<br />`string` | Event type ([see obs-websocket documentation](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events))
 `handler`<br />`Function` | Function that is called when event is sent by the server. Recieves data as the first argument ([see obs-websocket documentation for the event](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events))
 
-
 ```ts
 function onCurrentSceneChanged(event) {
   console.log('Current scene changed to', event.sceneName)
@@ -278,7 +277,7 @@ obs.once('ExitStarted', () => {
 
 #### Internal events
 
-In addition to obs-websocket events, following events are emitted by obs-websocket-js client itself:
+In addition to obs-websocket events, following events are emitted by obs-websocket-bun client itself:
 
 * `ConnectionOpened` - When connection has opened (no data)
 * `ConnectionClosed` - When connection closed (called with `OBSWebSocketError` object)
@@ -291,7 +290,7 @@ In addition to obs-websocket events, following events are emitted by obs-websock
 This library is written in typescript and typescript definitions are published with the package. Each package is released with typescript defintions matching the currently released version of obs-websocket. This data can be reused from `OBSEventTypes`, `OBSRequestTypes` and `OBSResponseTypes` named exports, though in most cases function parameters will enforce the typings correctly.
 
 ```ts
-import OBSWebSocket, {OBSEventTypes, OBSRequestTypes, OBSResponseTypes} from 'obs-websocket-js';
+import OBSWebSocket, {OBSEventTypes, OBSRequestTypes, OBSResponseTypes} from 'obs-websocket-bun';
 
 function onProfileChanged(event: OBSEventTypes['CurrentProfileChanged']) {
   event.profileName
@@ -321,39 +320,39 @@ To enable debug logging, set the `DEBUG` environment variable:
 
 ```sh
 # Enables debug logging for all modules of osb-websocket-js
-DEBUG=obs-websocket-js:*
+DEBUG=obs-websocket-bun:*
 
 # on Windows
-set DEBUG=obs-websocket-js:*
+set DEBUG=obs-websocket-bun:*
 ```
 
 If you have multiple libraries or application which use the `DEBUG` environment variable, they can be joined with commas:
 
 ```sh
-DEBUG=foo,bar:*,obs-websocket-js:*
+DEBUG=foo,bar:*,obs-websocket-bun:*
 
 # on Windows
-set DEBUG=foo,bar:*,obs-websocket-js:*
+set DEBUG=foo,bar:*,obs-websocket-bun:*
 ```
 
 Browser debugging uses `localStorage`
 
 ```js
-localStorage.debug = 'obs-websocket-js:*';
+localStorage.debug = 'obs-websocket-bun:*';
 
-localStorage.debug = 'foo,bar:*,obs-websocket-js:*';
+localStorage.debug = 'foo,bar:*,obs-websocket-bun:*';
 ```
 
 For more information, see the [`debug`](https://github.com/visionmedia/debug) package documentation.
 
 ## Upgrading
 
-* [Upgrading from 4.x to 5.x](https://github.com/obs-websocket-community-projects/obs-websocket-js/releases/tag/v5.0.0)
-* [Upgrading from 2.x to 3.x](https://github.com/obs-websocket-community-projects/obs-websocket-js/tree/v4#upgrading-from-2x-to-3x)
-* [Upgrading from 1.x to 2.x](https://github.com/obs-websocket-community-projects/obs-websocket-js/tree/v4#upgrading-from-1x-to-2x)
+* [Upgrading from 4.x to 5.x](https://github.com/ibanks42/obs-websocket-bun/releases/tag/v5.0.0)
+* [Upgrading from 2.x to 3.x](https://github.com/ibanks42/obs-websocket-bun/tree/v4#upgrading-from-2x-to-3x)
+* [Upgrading from 1.x to 2.x](https://github.com/ibanks42/obs-websocket-bun/tree/v4#upgrading-from-1x-to-2x)
 
-## Projects Using **obs-websocket-js**
+## Projects Using **obs-websocket-bun**
 
-[Share your project in github discussions!](https://github.com/obs-websocket-community-projects/obs-websocket-js/discussions/categories/show-and-tell)
+[Share your project in github discussions!](https://github.com/ibanks42/obs-websocket-bun/discussions/categories/show-and-tell)
 
 ## [Contributing Guidelines](.github/CONTRIBUTING.md)

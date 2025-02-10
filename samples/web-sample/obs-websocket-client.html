@@ -1,43 +1,46 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script type="text/javascript" src="node_modules/obs-websocket-js/dist/obs-websocket.js"></script>
-  </head>
-  <body>
-    <h1>Connect</h1>
-    <input id="address" placeholder="Address"><button id="address_button">Connect</button>
 
-    <h1>Scene List</h1>
-    <div id="scene_list"></div>
+<head>
+	<script type="text/javascript" src="node_modules/obs-websocket-bun/dist/obs-websocket.js"></script>
+</head>
 
-    <script>
-      const obs = new OBSWebSocket();
+<body>
+	<h1>Connect</h1>
+	<input id="address" placeholder="Address"><button id="address_button">Connect</button>
 
-      document.getElementById('address_button').addEventListener('click', e => {
-        const address = document.getElementById('address').value;
+	<h1>Scene List</h1>
+	<div id="scene_list"></div>
 
-        obs.connect({
-          address: address
-        });
-      });
+	<script>
+		const obs = new OBSWebSocket();
 
-      obs.on('ConnectionOpened', () => {
-        obs.send('GetSceneList').then(data => {
-          const sceneListDiv = document.getElementById('scene_list');
+		document.getElementById('address_button').addEventListener('click', e => {
+			const address = document.getElementById('address').value;
 
-          data.scenes.forEach(scene => {
-            const sceneElement = document.createElement('button');
-            sceneElement.textContent = scene.name;
-            sceneElement.onclick = function() {
-              obs.send('SetCurrentScene', {
-                'scene-name': scene.name
-              });
-            };
+			obs.connect({
+				address: address
+			});
+		});
 
-            sceneListDiv.appendChild(sceneElement);
-          });
-        })
-      });
-    </script>
-  </body>
+		obs.on('ConnectionOpened', () => {
+			obs.send('GetSceneList').then(data => {
+				const sceneListDiv = document.getElementById('scene_list');
+
+				data.scenes.forEach(scene => {
+					const sceneElement = document.createElement('button');
+					sceneElement.textContent = scene.name;
+					sceneElement.onclick = function () {
+						obs.send('SetCurrentScene', {
+							'scene-name': scene.name
+						});
+					};
+
+					sceneListDiv.appendChild(sceneElement);
+				});
+			})
+		});
+	</script>
+</body>
+
 </html>

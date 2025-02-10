@@ -8,11 +8,11 @@
   - etc
 -->
 
-### Description:
+### Description
 
+### Versions Used (if applicable)
 
-### Versions Used (if applicable):
-  - obs-websocket-js version:
-  - obs-websocket plugin version:
-  - obs-studio version:
-  - node version:
+- obs-websocket-bun version:
+- obs-websocket plugin version:
+- obs-studio version:
+- node version:

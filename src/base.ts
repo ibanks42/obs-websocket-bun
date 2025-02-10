@@ -1,14 +1,27 @@
-import createDebug from 'debug';
-import { EventEmitter } from 'eventemitter3';
+import createDebug from "debug";
+import { EventEmitter } from "eventemitter3";
 // Import under alias so DOM's WebSocket type can be used
-import WebSocketIpml from 'isomorphic-ws';
-import type { Except, Merge, SetOptional } from 'type-fest';
+import WebSocketIpml from "isomorphic-ws";
+import type { Except, Merge, SetOptional } from "type-fest";
 
-import { WebSocketOpCode } from './types.js';
-import type { OutgoingMessageTypes, OutgoingMessage, OBSEventTypes, IncomingMessage, IncomingMessageTypes, OBSRequestTypes, OBSResponseTypes, RequestMessage, RequestBatchExecutionType, RequestBatchRequest, RequestBatchMessage, ResponseMessage, ResponseBatchMessage, RequestBatchOptions } from './types.js';
-import authenticationHashing from './utils/authenticationHashing.js';
+import type {
+	IncomingMessage,
+	IncomingMessageTypes,
+	OBSEventTypes,
+	OBSRequestTypes,
+	OBSResponseTypes,
+	OutgoingMessage,
+	OutgoingMessageTypes,
+	RequestBatchOptions,
+	RequestBatchRequest,
+	RequestMessage,
+	ResponseBatchMessage,
+	ResponseMessage,
+} from "./types.js";
+import { WebSocketOpCode } from "./types.js";
+import authenticationHashing from "./utils/authenticationHashing.js";
 
-const debug = createDebug('obs-websocket-js');
+const debug = createDebug("obs-websocket-bun");
 
 export class OBSWebSocketError extends Error {
 	constructor(public code: number, message: string) {
@@ -16,13 +29,16 @@ export class OBSWebSocketError extends Error {
 	}
 }
 
-export type EventTypes = Merge<{
-	ConnectionOpened: void;
-	ConnectionClosed: OBSWebSocketError;
-	ConnectionError: OBSWebSocketError;
-	Hello: IncomingMessageTypes[WebSocketOpCode.Hello];
-	Identified: IncomingMessageTypes[WebSocketOpCode.Identified];
-}, OBSEventTypes>;
+export type EventTypes = Merge<
+	{
+		ConnectionOpened: void;
+		ConnectionClosed: OBSWebSocketError;
+		ConnectionError: OBSWebSocketError;
+		Hello: IncomingMessageTypes[WebSocketOpCode.Hello];
+		Identified: IncomingMessageTypes[WebSocketOpCode.Identified];
+	},
+	OBSEventTypes
+>;
 
 // EventEmitter expects {type: [value]} syntax while for us {type: value} is neater
 type MapValueToArgsArray<T extends Record<string, unknown>> = {
@@ -30,13 +46,18 @@ type MapValueToArgsArray<T extends Record<string, unknown>> = {
 	[K in keyof T]: T[K] extends void ? [] : [T[K]];
 };
 
-type IdentificationInput = SetOptional<Except<OutgoingMessageTypes[WebSocketOpCode.Identify], 'authentication'>, 'rpcVersion'>;
+type IdentificationInput = SetOptional<
+	Except<OutgoingMessageTypes[WebSocketOpCode.Identify], "authentication">,
+	"rpcVersion"
+>;
 type HelloIdentifiedMerged = Merge<
-	Exclude<IncomingMessageTypes[WebSocketOpCode.Hello], 'authenticate'>,
+	Exclude<IncomingMessageTypes[WebSocketOpCode.Hello], "authenticate">,
 	IncomingMessageTypes[WebSocketOpCode.Identified]
 >;
 
-export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<EventTypes>> {
+export abstract class BaseOBSWebSocket extends EventEmitter<
+	MapValueToArgsArray<EventTypes>
+> {
 	protected static requestCounter = 1;
 
 	protected static generateMessageId(): string {
@@ -60,34 +81,40 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @returns Hello & Identified messages data (combined)
 	 */
 	async connect(
-		url = 'ws://127.0.0.1:4455',
+		url = "ws://127.0.0.1:4455",
 		password?: string,
-		identificationParams: IdentificationInput = {},
+		identificationParams: IdentificationInput = {}
 	): Promise<HelloIdentifiedMerged> {
 		if (this.socket) {
 			await this.disconnect();
 		}
 
 		try {
-			const connectionClosedPromise = this.internalEventPromise<EventTypes['ConnectionClosed']>('ConnectionClosed');
-			const connectionErrorPromise = this.internalEventPromise<EventTypes['ConnectionError']>('ConnectionError');
+			const connectionClosedPromise =
+				this.internalEventPromise<EventTypes["ConnectionClosed"]>(
+					"ConnectionClosed"
+				);
+			const connectionErrorPromise =
+				this.internalEventPromise<EventTypes["ConnectionError"]>(
+					"ConnectionError"
+				);
 
 			return await Promise.race([
 				(async () => {
 					const hello = await this.createConnection(url);
-					this.emit('Hello', hello);
+					this.emit("Hello", hello);
 					return this.identify(hello, password, identificationParams);
 				})(),
 				// Choose the best promise for connection error/close
 				// In browser connection close has close code + reason,
 				// while in node error event has these
 				new Promise<never>((resolve, reject) => {
-					void connectionErrorPromise.then(e => {
+					void connectionErrorPromise.then((e) => {
 						if (e.message) {
 							reject(e);
 						}
 					});
-					void connectionClosedPromise.then(e => {
+					void connectionClosedPromise.then((e) => {
 						reject(e);
 					});
 				}),
@@ -106,7 +133,8 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 			return;
 		}
 
-		const connectionClosedPromise = this.internalEventPromise('ConnectionClosed');
+		const connectionClosedPromise =
+			this.internalEventPromise("ConnectionClosed");
 		this.socket.close();
 		await connectionClosedPromise;
 	}
@@ -117,7 +145,9 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @returns Identified message data
 	 */
 	async reidentify(data: OutgoingMessageTypes[WebSocketOpCode.Reidentify]) {
-		const identifiedPromise = this.internalEventPromise<IncomingMessageTypes[WebSocketOpCode.Identified]>(`op:${WebSocketOpCode.Identified}`);
+		const identifiedPromise = this.internalEventPromise<
+			IncomingMessageTypes[WebSocketOpCode.Identified]
+		>(`op:${WebSocketOpCode.Identified}`);
 		await this.message(WebSocketOpCode.Reidentify, data);
 		return identifiedPromise;
 	}
@@ -128,9 +158,14 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param requestData Request data
 	 * @returns Request response
 	 */
-	async call<Type extends keyof OBSRequestTypes>(requestType: Type, requestData?: OBSRequestTypes[Type]): Promise<OBSResponseTypes[Type]> {
+	async call<Type extends keyof OBSRequestTypes>(
+		requestType: Type,
+		requestData?: OBSRequestTypes[Type]
+	): Promise<OBSResponseTypes[Type]> {
 		const requestId = BaseOBSWebSocket.generateMessageId();
-		const responsePromise = this.internalEventPromise<ResponseMessage<Type>>(`res:${requestId}`);
+		const responsePromise = this.internalEventPromise<ResponseMessage<Type>>(
+			`res:${requestId}`
+		);
 		await this.message(WebSocketOpCode.Request, {
 			requestId,
 			requestType,
@@ -153,9 +188,14 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param options.haltOnFailure Whether obs-websocket should stop executing the batch if one request fails
 	 * @returns RequestBatch response
 	 */
-	async callBatch(requests: RequestBatchRequest[], options: RequestBatchOptions = {}): Promise<ResponseMessage[]> {
+	async callBatch(
+		requests: RequestBatchRequest[],
+		options: RequestBatchOptions = {}
+	): Promise<ResponseMessage[]> {
 		const requestId = BaseOBSWebSocket.generateMessageId();
-		const responsePromise = this.internalEventPromise<ResponseBatchMessage>(`res:${requestId}`);
+		const responsePromise = this.internalEventPromise<ResponseBatchMessage>(
+			`res:${requestId}`
+		);
 
 		await this.message(WebSocketOpCode.RequestBatch, {
 			requestId,
@@ -194,8 +234,11 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @returns Promise for hello data
 	 */
 	protected async createConnection(url: string) {
-		const connectionOpenedPromise = this.internalEventPromise('ConnectionOpened');
-		const helloPromise = this.internalEventPromise<IncomingMessageTypes[WebSocketOpCode.Hello]>(`op:${WebSocketOpCode.Hello}`);
+		const connectionOpenedPromise =
+			this.internalEventPromise("ConnectionOpened");
+		const helloPromise = this.internalEventPromise<
+			IncomingMessageTypes[WebSocketOpCode.Hello]
+		>(`op:${WebSocketOpCode.Hello}`);
 
 		this.socket = new WebSocketIpml(url, this.protocol) as unknown as WebSocket;
 		this.socket.onopen = this.onOpen.bind(this);
@@ -234,7 +277,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 			...helloRest
 		}: IncomingMessageTypes[WebSocketOpCode.Hello],
 		password?: string,
-		identificationParams: IdentificationInput = {},
+		identificationParams: IdentificationInput = {}
 	): Promise<HelloIdentifiedMerged> {
 		// Set rpcVersion if unset
 		const data: OutgoingMessageTypes[WebSocketOpCode.Identify] = {
@@ -243,14 +286,20 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 		};
 
 		if (authentication && password) {
-			data.authentication = authenticationHashing(authentication.salt, authentication.challenge, password);
+			data.authentication = authenticationHashing(
+				authentication.salt,
+				authentication.challenge,
+				password
+			);
 		}
 
-		const identifiedPromise = this.internalEventPromise<IncomingMessageTypes[WebSocketOpCode.Identified]>(`op:${WebSocketOpCode.Identified}`);
+		const identifiedPromise = this.internalEventPromise<
+			IncomingMessageTypes[WebSocketOpCode.Identified]
+		>(`op:${WebSocketOpCode.Identified}`);
 		await this.message(WebSocketOpCode.Identify, data);
 		const identified = await identifiedPromise;
 		this._identified = true;
-		this.emit('Identified', identified);
+		this.emit("Identified", identified);
 
 		return {
 			rpcVersion,
@@ -266,13 +315,16 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param op WebSocketOpCode
 	 * @param d Message data
 	 */
-	protected async message<Type extends keyof OutgoingMessageTypes>(op: Type, d: OutgoingMessageTypes[Type]) {
+	protected async message<Type extends keyof OutgoingMessageTypes>(
+		op: Type,
+		d: OutgoingMessageTypes[Type]
+	) {
 		if (!this.socket) {
-			throw new Error('Not connected');
+			throw new Error("Not connected");
 		}
 
 		if (!this.identified && op !== 1) {
-			throw new Error('Socket not identified');
+			throw new Error("Socket not identified");
 		}
 
 		const encoded = await this.encodeMessage({
@@ -290,8 +342,10 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param event Event to listen to
 	 * @returns Event data
 	 */
-	protected async internalEventPromise<ReturnVal = unknown>(event: string): Promise<ReturnVal> {
-		return new Promise(resolve => {
+	protected async internalEventPromise<ReturnVal = unknown>(
+		event: string
+	): Promise<ReturnVal> {
+		return new Promise((resolve) => {
 			this.internalListeners.once(event, resolve);
 		});
 	}
@@ -303,9 +357,9 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param e Event
 	 */
 	protected onOpen(e: Event) {
-		debug('socket.open');
-		this.emit('ConnectionOpened');
-		this.internalListeners.emit('ConnectionOpened', e);
+		debug("socket.open");
+		this.emit("ConnectionOpened");
+		this.internalListeners.emit("ConnectionOpened", e);
 	}
 
 	/**
@@ -317,7 +371,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	protected async onMessage(e: MessageEvent<string | Blob | ArrayBuffer>) {
 		try {
 			const { op, d } = await this.decodeMessage(e.data);
-			debug('socket.message: %d %j', op, d);
+			debug("socket.message: %d %j", op, d);
 
 			if (op === undefined || d === undefined) {
 				return;
@@ -342,7 +396,7 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 					this.internalListeners.emit(`op:${op}`, d);
 			}
 		} catch (error: unknown) {
-			debug('error handling message: %o', error);
+			debug("error handling message: %o", error);
 		}
 	}
 
@@ -353,11 +407,11 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param e ErrorEvent
 	 */
 	protected onError(e: ErrorEvent) {
-		debug('socket.error: %o', e);
+		debug("socket.error: %o", e);
 		const error = new OBSWebSocketError(-1, e.message);
 
-		this.emit('ConnectionError', error);
-		this.internalListeners.emit('ConnectionError', error);
+		this.emit("ConnectionError", error);
+		this.internalListeners.emit("ConnectionError", error);
 	}
 
 	/**
@@ -367,11 +421,11 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param e Event
 	 */
 	protected onClose(e: CloseEvent) {
-		debug('socket.close: %s (%d)', e.reason, e.code);
+		debug("socket.close: %s (%d)", e.reason, e.code);
 		const error = new OBSWebSocketError(e.code, e.reason);
 
-		this.emit('ConnectionClosed', error);
-		this.internalListeners.emit('ConnectionClosed', error);
+		this.emit("ConnectionClosed", error);
+		this.internalListeners.emit("ConnectionClosed", error);
 		this.cleanup();
 	}
 
@@ -380,18 +434,22 @@ export abstract class BaseOBSWebSocket extends EventEmitter<MapValueToArgsArray<
 	 * @param data Outgoing message
 	 * @returns Outgoing message to send via websocket
 	 */
-	protected abstract encodeMessage(data: OutgoingMessage): Promise<string | Blob | ArrayBufferView>;
+	protected abstract encodeMessage(
+		data: OutgoingMessage
+	): Promise<string | Blob | ArrayBufferView>;
 
 	/**
 	 * Decode a message for specified protocol
 	 * @param data Incoming message from websocket
 	 * @returns Parsed incoming message
 	 */
-	protected abstract decodeMessage(data: string | ArrayBuffer | Blob): Promise<IncomingMessage>;
+	protected abstract decodeMessage(
+		data: string | ArrayBuffer | Blob
+	): Promise<IncomingMessage>;
 }
 
 // https://github.com/developit/microbundle/issues/531#issuecomment-575473024
 // Not using ESM export due to it also being detected and breaking rollup based bundlers (vite)
-if (typeof exports !== 'undefined') {
-	Object.defineProperty(exports, '__esModule', { value: true });
+if (typeof exports !== "undefined") {
+	Object.defineProperty(exports, "__esModule", { value: true });
 }
